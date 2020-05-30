@@ -8,6 +8,7 @@ import org.zaproxy.zap.tasks.GradleBuildWithGitRepos
 plugins {
     `java-library`
     jacoco
+    war
     id("me.champeau.gradle.japicmp")
     org.zaproxy.zap.distributions
     org.zaproxy.zap.installers
@@ -69,6 +70,8 @@ dependencies {
     implementation("org.javadelight:delight-nashorn-sandbox:0.1.26")
     implementation("com.formdev:flatlaf:0.30")
 
+    providedCompile("javax.servlet:javax.servlet-api:3.1.0")
+
     runtimeOnly("commons-jxpath:commons-jxpath:1.3")
     runtimeOnly("commons-logging:commons-logging:1.2")
     runtimeOnly("com.io7m.xom:xom:1.2.10") {
@@ -101,6 +104,11 @@ tasks.register<JavaExec>("run") {
     main = "org.zaproxy.zap.ZAP"
     classpath = sourceSets["main"].runtimeClasspath
     workingDir = distDir
+}
+
+tasks.war {
+    webXml = file("H:/Zap_LocalSetup/zaproxy/WebContent/WEB-INF/web.xml") // copies a file to WEB-INF/web.xml
+    archiveFileName.set("zap.war")
 }
 
 listOf("jar", "jarDaily").forEach {

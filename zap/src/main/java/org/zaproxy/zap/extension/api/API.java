@@ -317,6 +317,11 @@ public class API {
             }
         }
         String path = requestHeader.getURI().getPath();
+
+        // TODO: will cause issues when deploy at root directory
+        String[] uris = requestHeader.getURI().getPath().split("/");
+        path = "/" + uris[2] + "/" + uris[3] + "/" + uris[4] + "/" + uris[5];
+
         if (path != null) {
             for (Entry<String, ApiImplementor> shortcut : shortcuts.entrySet()) {
                 if (path.startsWith(shortcut.getKey())) {
@@ -401,7 +406,7 @@ public class API {
 
                 } else if (elements.length > 3) {
                     try {
-                        format = Format.valueOf(elements[3].toUpperCase());
+                        format = Format.valueOf(elements[4].toUpperCase());
                         switch (format) {
                             case JSONP:
                                 contentType = "application/javascript; charset=UTF-8";
@@ -425,22 +430,22 @@ public class API {
                         throw new ApiException(ApiException.Type.BAD_FORMAT, e);
                     }
                 }
-                if (elements.length > 4) {
-                    component = elements[4];
+                if (elements.length > 5) {
+                    component = elements[5];
                     impl = implementors.get(component);
                     if (impl == null) {
                         throw new ApiException(ApiException.Type.NO_IMPLEMENTOR);
                     }
                 }
-                if (elements.length > 5) {
+                if (elements.length > 6) {
                     try {
-                        reqType = RequestType.valueOf(elements[5]);
+                        reqType = RequestType.valueOf(elements[6]);
                     } catch (IllegalArgumentException e) {
                         throw new ApiException(ApiException.Type.BAD_TYPE, e);
                     }
                 }
-                if (elements.length > 6) {
-                    name = elements[6];
+                if (elements.length > 7) {
+                    name = elements[7];
                     if (name != null && name.indexOf("?") > 0) {
                         name = name.substring(0, name.indexOf("?"));
                     }
@@ -957,6 +962,10 @@ public class API {
             String apiPath;
             try {
                 apiPath = reqHeader.getURI().getPath();
+
+                // TODO: will cause issues when deploy at root directory
+                String[] uris = reqHeader.getURI().getPath().split("/");
+                apiPath = "/" + uris[2] + "/" + uris[3] + "/" + uris[4] + "/" + uris[5];
             } catch (URIException e) {
                 logger.error(e.getMessage(), e);
                 return false;
