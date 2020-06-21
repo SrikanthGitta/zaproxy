@@ -61,6 +61,9 @@ dependencies {
     api("org.jgrapht:jgrapht-core:0.9.0")
     api("org.swinglabs.swingx:swingx-all:1.6.5-1")
     api("org.xerial:sqlite-jdbc:3.28.0")
+    api("com.crawljax:crawljax-core:3.6")
+    api("org.seleniumhq.selenium:selenium-chrome-driver:3.141.59")
+    api("org.openqa.selenium.core:selenium-core:1.0-20080914.225453")
 
     implementation("commons-validator:commons-validator:1.6")
     // Don't need its dependencies, for now.

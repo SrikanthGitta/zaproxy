@@ -101,6 +101,22 @@ public class OptionsParam extends AbstractParam {
 
     /** @return Returns the proxyParam. */
     public ProxyParam getProxyParam() {
+        System.out.println(
+                "---proxy param getProxyIp--optionsparam-104--" + proxyParam.getProxyIp());
+        System.out.println(
+                "---proxy param getProxyPort--optionsparam-104--" + proxyParam.getProxyPort());
+        System.out.println(
+                "---proxy param getRawProxyIP--optionsparam-104--" + proxyParam.getRawProxyIP());
+        System.out.println(
+                "---proxy param getReverseProxyIp--optionsparam-104--"
+                        + proxyParam.getReverseProxyIp());
+        System.out.println(
+                "---proxy param getReverseProxyHttpPort--optionsparam-104--"
+                        + proxyParam.getReverseProxyHttpPort());
+        System.out.println(
+                "---proxy param getReverseProxyHttpsPort--optionsparam-104--"
+                        + proxyParam.getReverseProxyHttpsPort());
+        System.out.println("---proxy param getConfig--optionsparam-104--" + proxyParam.getConfig());
         return proxyParam;
     }
 

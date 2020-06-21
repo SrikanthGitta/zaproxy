@@ -50,10 +50,6 @@ public class ZapServlet extends HttpServlet {
     public void init() throws ServletException {
 
         ControlOverrides controlOverrides = new ControlOverrides();
-        controlOverrides.setProxyPort(8080);
-        controlOverrides.setProxyHost("localhost");
-        // controlOverrides.setOrderedConfigs(getArgs().getOrderedConfigs());
-        // controlOverrides.setExperimentalDb(getArgs().isExperimentalDb());
 
         // instantiating control singleton
         try {

@@ -20,7 +20,6 @@
 package org.zaproxy.zap.extension.api;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -208,15 +207,20 @@ public class API {
     public boolean isEnabled() {
         // Check API is enabled (its always enabled if run from the cmdline)
         if (View.isInitialised() && !getOptionsParamApi().isEnabled()) {
+            System.out.println("---api--209--isEnabled false");
             return false;
         }
+
+        System.out.println("---api--212--isEnabled true");
         return true;
     }
 
     private OptionsParamApi getOptionsParamApi() {
         if (optionsParamApi == null) {
+            System.out.println("---null optionparaapi---220");
             optionsParamApi = Model.getSingleton().getOptionsParam().getApiParam();
         }
+        System.out.println("---OptionParamAPI--api-219-" + optionsParamApi);
         return optionsParamApi;
     }
 
@@ -252,6 +256,11 @@ public class API {
     }
 
     private boolean isPermittedAddr(HttpRequestHeader requestHeader) {
+        System.out.println(
+                "----is permittedaddress---259--"
+                        + requestHeader.getSenderAddress().getHostAddress());
+        System.out.println(
+                "-----requestHeader.getHostName()---260---" + requestHeader.getHostName());
         if (getOptionsParamApi()
                 .isPermittedAddress(requestHeader.getSenderAddress().getHostAddress())) {
             if (getOptionsParamApi().isPermittedAddress(requestHeader.getHostName())) {
@@ -293,6 +302,7 @@ public class API {
             throws IOException {
 
         String url = requestHeader.getURI().toString();
+        System.out.println("---url from reqHeader--" + url);
         Format format = Format.OTHER;
         ApiImplementor callbackImpl = null;
         ApiImplementor shortcutImpl = null;
@@ -317,10 +327,17 @@ public class API {
             }
         }
         String path = requestHeader.getURI().getPath();
+        System.out.println("----path1---");
+        System.out.println(path);
 
         // TODO: will cause issues when deploy at root directory
         String[] uris = requestHeader.getURI().getPath().split("/");
-        path = "/" + uris[2] + "/" + uris[3] + "/" + uris[4] + "/" + uris[5];
+        for (String uri : uris) {
+            System.out.println("----uri----" + uri);
+        }
+        path = "/" + uris[2] + "/" + uris[3] + "/" + uris[4];
+        System.out.println("----path2---");
+        System.out.println(path);
 
         if (path != null) {
             for (Entry<String, ApiImplementor> shortcut : shortcuts.entrySet()) {
@@ -341,6 +358,14 @@ public class API {
             // Callback by their very nature are on the target domain
             return new HttpMessage();
         }
+        System.out.println(
+                "---requestHeader---"
+                        + requestHeader.getHostName()
+                        + "--"
+                        + requestHeader.getMethod());
+        System.out.println("---HostPort---" + requestHeader.getHostPort());
+        System.out.println("---uri---" + requestHeader.getURI());
+        System.out.println("---senderAddress---" + requestHeader.getSenderAddress());
         if (getOptionsParamApi().isSecureOnly() && !requestHeader.isSecure()) {
             // Insecure request with secure only set, always ignore
             logger.debug("handleApiRequest rejecting insecure request");
@@ -348,6 +373,7 @@ public class API {
         }
 
         logger.debug("handleApiRequest " + url);
+        System.out.println("-------handleApiRequest " + url);
 
         HttpMessage msg = new HttpMessage();
         msg.setRequestHeader(requestHeader);
@@ -363,7 +389,6 @@ public class API {
         boolean error = false;
 
         try {
-
             if (shortcutImpl != null) {
                 if (!getOptionsParamApi().isDisableKey()
                         && !getOptionsParamApi().isNoKeyForSafeOps()) {
@@ -384,81 +409,41 @@ public class API {
                 // format of url is http://zap/format/component/reqtype/name/?params
                 //                    0  1  2    3        4        5      6
                 String[] elements = url.split("/");
-
-                if (elements.length > 3 && elements[3].equalsIgnoreCase("favicon.ico")) {
-                    // Treat the favicon as a special case:)
-                    if (!getOptionsParamApi().isUiEnabled()) {
-                        throw new ApiException(ApiException.Type.DISABLED);
-                    }
-                    InputStream is = API.class.getResourceAsStream("/resource/zap.ico");
-                    byte[] icon = new byte[is.available()];
-                    is.read(icon);
-                    is.close();
-
-                    msg.setResponseHeader(getDefaultResponseHeader(contentType));
-                    msg.getResponseHeader().setContentLength(icon.length);
-                    httpOut.write(msg.getResponseHeader());
-                    httpOut.write(icon);
-                    httpOut.flush();
-                    httpOut.close();
-                    httpIn.close();
-                    return msg;
-
-                } else if (elements.length > 3) {
-                    try {
-                        format = Format.valueOf(elements[4].toUpperCase());
-                        switch (format) {
-                            case JSONP:
-                                contentType = "application/javascript; charset=UTF-8";
-                                break;
-                            case XML:
-                                contentType = "text/xml; charset=UTF-8";
-                                break;
-                            case HTML:
-                                contentType = "text/html; charset=UTF-8";
-                                break;
-                            case UI:
-                                contentType = "text/html; charset=UTF-8";
-                                break;
-                            case JSON:
-                            default:
-                                contentType = "application/json; charset=UTF-8";
-                                break;
-                        }
-                    } catch (IllegalArgumentException e) {
-                        format = Format.HTML;
-                        throw new ApiException(ApiException.Type.BAD_FORMAT, e);
-                    }
+                // http://localhost:8080/zap/JSON/ajaxSpider/action/scan/?
+                System.out.println("-------handleApiRequest " + url);
+                for (String s : elements) {
+                    System.out.println("---element---" + s);
                 }
-                if (elements.length > 5) {
-                    component = elements[5];
+
+                if (elements.length > 4) {
+                    component = elements[4];
+                    System.out.println("----component-----" + component);
+                    for (Entry<String, ApiImplementor> entry : implementors.entrySet())
+                        System.out.println(
+                                "Key = " + entry.getKey() + ", Value = " + entry.getValue());
+
                     impl = implementors.get(component);
+                    System.out.println("-------impl---" + impl);
                     if (impl == null) {
+                        System.out.println("---null impl---" + impl);
                         throw new ApiException(ApiException.Type.NO_IMPLEMENTOR);
                     }
                 }
-                if (elements.length > 6) {
+                if (elements.length > 5) {
                     try {
-                        reqType = RequestType.valueOf(elements[6]);
+                        reqType = RequestType.valueOf(elements[5]);
                     } catch (IllegalArgumentException e) {
                         throw new ApiException(ApiException.Type.BAD_TYPE, e);
                     }
                 }
-                if (elements.length > 7) {
-                    name = elements[7];
+                if (elements.length > 6) {
+                    name = elements[6];
                     if (name != null && name.indexOf("?") > 0) {
                         name = name.substring(0, name.indexOf("?"));
                     }
                 }
 
-                if (format.equals(Format.UI)) {
-                    if (!isEnabled() || !getOptionsParamApi().isUiEnabled()) {
-                        throw new ApiException(ApiException.Type.DISABLED);
-                    }
-
-                    response = webUI.handleRequest(component, impl, reqType, name);
-                    contentType = "text/html; charset=UTF-8";
-                } else if (name != null) {
+                if (name != null) {
                     if (!isEnabled()) {
                         throw new ApiException(ApiException.Type.DISABLED);
                     }
@@ -468,20 +453,10 @@ public class API {
                         if (contentTypeHeader != null
                                 && contentTypeHeader.equals(
                                         HttpHeader.FORM_URLENCODED_CONTENT_TYPE)) {
-                            params = getParams(msg.getRequestBody().toString());
+                            params = getParams(requestHeader);
+                            System.out.println("----params---apijava 439--" + params);
                         } else {
                             throw new ApiException(ApiException.Type.CONTENT_TYPE_NOT_SUPPORTED);
-                        }
-                    }
-
-                    if (format.equals(Format.JSONP)) {
-                        if (!getOptionsParamApi().isEnableJSONP()) {
-                            // Not enabled
-                            throw new ApiException(ApiException.Type.DISABLED);
-                        }
-                        if (!this.hasValidKey(requestHeader, params)) {
-                            // An api key is required for ALL JSONP requests
-                            throw new ApiException(ApiException.Type.BAD_API_KEY);
                         }
                     }
 
@@ -496,23 +471,33 @@ public class API {
                     }
                     switch (reqType) {
                         case action:
+                            System.out.println("isDisableKey------");
+                            System.out.println(getOptionsParamApi().isDisableKey());
+                            System.out.println(
+                                    "=====hasValidKey====="
+                                            + this.hasValidKey(requestHeader, params));
+                            System.out.println("====params====" + params.values());
+                            System.out.println("=====name===" + name);
                             if (!getOptionsParamApi().isDisableKey()) {
                                 if (!this.hasValidKey(requestHeader, params)) {
                                     throw new ApiException(ApiException.Type.BAD_API_KEY);
                                 }
                             }
-                            validateFormatForViewAction(format);
+                            // validateFormatForViewAction(format);
 
                             ApiAction action = impl.getApiAction(name);
                             validateMandatoryParams(params, action);
 
                             res = impl.handleApiOptionAction(name, params);
+                            System.out.println("===response form handleapioptionaction====" + res);
                             if (res == null) {
                                 res = impl.handleApiAction(name, params);
                             }
-                            response = convertViewActionApiResponse(format, name, res);
-
+                            response = res.toJSON().toString();
+                            // convertViewActionApiResponse(format, name, res);
+                            System.out.println("========response===========" + response);
                             break;
+
                         case view:
                             if (!getOptionsParamApi().isDisableKey()
                                     && !getOptionsParamApi().isNoKeyForSafeOps()) {
@@ -520,7 +505,7 @@ public class API {
                                     throw new ApiException(ApiException.Type.BAD_API_KEY);
                                 }
                             }
-                            validateFormatForViewAction(format);
+                            // validateFormatForViewAction(format);
 
                             ApiView view = impl.getApiView(name);
                             validateMandatoryParams(params, view);
@@ -529,7 +514,8 @@ public class API {
                             if (res == null) {
                                 res = impl.handleApiView(name, params);
                             }
-                            response = convertViewActionApiResponse(format, name, res);
+                            response = res.toJSON().toString();
+                            // convertViewActionApiResponse(format, name, res);
 
                             break;
                         case other:
@@ -588,10 +574,7 @@ public class API {
             error = true;
         }
 
-        if (!error
-                && !format.equals(Format.OTHER)
-                && shortcutImpl == null
-                && callbackImpl == null) {
+        if (!error && shortcutImpl == null && callbackImpl == null) {
             msg.setResponseHeader(getDefaultResponseHeader(contentType));
             msg.setResponseBody(response);
             msg.getResponseHeader().setContentLength(msg.getResponseBody().length());
@@ -601,14 +584,16 @@ public class API {
             impl.addCustomHeaders(name, reqType, msg);
         }
 
-        httpOut.write(msg.getResponseHeader());
-        httpOut.write(msg.getResponseBody().getBytes());
+        // httpOut.write(msg.getResponseHeader());
+        // httpOut.write(msg.getResponseBody().getBytes());
         httpOut.flush();
         if (!msg.isWebSocketUpgrade()) {
             httpOut.close();
             httpIn.close();
         }
 
+        System.out.println("----response---final-print--" + response);
+        System.out.println("----msg---final---");
         return msg;
     }
 
@@ -625,7 +610,7 @@ public class API {
         if (element == null) {
             return;
         }
-
+        System.out.println("---params");
         for (ApiParameter parameter : element.getParameters()) {
             if (!parameter.isRequired()) {
                 continue;
@@ -961,18 +946,26 @@ public class API {
         try {
             String apiPath;
             try {
+                System.out.println("====params====" + params.values());
+
                 apiPath = reqHeader.getURI().getPath();
+                System.out.println("---api.java--935--hasValidKey---apiPath--" + apiPath);
 
                 // TODO: will cause issues when deploy at root directory
                 String[] uris = reqHeader.getURI().getPath().split("/");
-                apiPath = "/" + uris[2] + "/" + uris[3] + "/" + uris[4] + "/" + uris[5];
+                System.out.println("---api.java--939--hasValidKey---uris--" + uris);
+                apiPath = "/" + uris[2] + "/" + uris[3] + "/" + uris[4];
+                // apiPath = "/" + uris[2] + "/" + uris[3] + "/" + uris[4] + "/" + uris[5];
+                System.out.println("---apiPath----941" + apiPath);
             } catch (URIException e) {
                 logger.error(e.getMessage(), e);
+                System.out.println("---apiPath----941" + e.getMessage());
                 return false;
             }
             String nonceParam = reqHeader.getHeader(HttpHeader.X_ZAP_API_NONCE);
             if (nonceParam == null && params.has(API_NONCE_PARAM)) {
                 nonceParam = params.getString(API_NONCE_PARAM);
+                System.out.println("---api.java--953--hasValidKey---nonceParam--" + nonceParam);
             }
 
             if (nonceParam != null) {
@@ -983,6 +976,7 @@ public class API {
                                     + nonceParam
                                     + " not found in request from "
                                     + reqHeader.getSenderAddress().getHostAddress());
+                    System.out.println("---!nonce---api-963---");
                     return false;
                 } else if (nonce.isOneTime()) {
                     nonces.remove(nonceParam);
@@ -995,6 +989,7 @@ public class API {
                                     + nonce.getExpires().toString()
                                     + " in request from "
                                     + reqHeader.getSenderAddress().getHostAddress());
+                    System.out.println("---!nonce.isValid()--api-975---");
                     return false;
                 }
 
@@ -1006,11 +1001,14 @@ public class API {
                                     + apiPath
                                     + " in request from "
                                     + reqHeader.getSenderAddress().getHostAddress());
+
+                    System.out.println("---nonce.getApiPath()--api-987---" + apiPath);
                     return false;
                 }
             } else {
                 String keyParam = reqHeader.getHeader(HttpHeader.X_ZAP_API_KEY);
                 if (keyParam == null && params.has(API_KEY_PARAM)) {
+                    System.out.println("---keyParam--api-991---" + keyParam);
                     keyParam = params.getString(API_KEY_PARAM);
                 }
                 if (!getOptionsParamApi().getKey().equals(keyParam)) {
@@ -1019,6 +1017,7 @@ public class API {
                                     + keyParam
                                     + " in request from "
                                     + reqHeader.getSenderAddress().getHostAddress());
+                    System.out.println("---keyParam--api-999---" + keyParam);
                     return false;
                 }
             }

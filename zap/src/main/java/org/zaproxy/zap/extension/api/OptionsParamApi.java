@@ -230,9 +230,11 @@ public class OptionsParamApi extends AbstractParam {
 
         for (DomainMatcher permAddr : permittedAddressesEnabled) {
             if (permAddr.matches(addr)) {
+                System.out.println("---permittedAddress true-- " + addr);
                 return true;
             }
         }
+        System.out.println("---permittedAddress false-- " + addr);
         return false;
     }
 
@@ -301,7 +303,9 @@ public class OptionsParamApi extends AbstractParam {
                 ((HierarchicalConfiguration) getConfig()).configurationsAt(ADDRESS_KEY);
         this.permittedAddresses = new ArrayList<>(fields.size());
         ArrayList<DomainMatcher> addrsEnabled = new ArrayList<>(fields.size());
+        System.out.println("----address from config---" + fields);
         for (HierarchicalConfiguration sub : fields) {
+            System.out.println("----address from config---" + sub.getKeys());
             String value = sub.getString(ADDRESS_VALUE_KEY, "");
             if (value.isEmpty()) {
                 LOGGER.warn("Failed to read a permitted address entry, required value is empty.");
