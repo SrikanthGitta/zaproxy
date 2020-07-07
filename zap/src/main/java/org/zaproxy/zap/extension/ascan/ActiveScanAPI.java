@@ -1107,9 +1107,32 @@ public class ActiveScanAPI extends ApiImplementor {
                 break;
             case VIEW_SCAN_POLICY_NAMES:
                 resultList = new ApiResponseList(name);
-                for (String policyName : controller.getPolicyManager().getAllPolicyNames()) {
-                    resultList.addItem(new ApiResponseElement("policy", policyName));
+                
+                PolicyManager policyManager = controller.getPolicyManager();
+                String attackStrength = "";
+                String alertThreshold = "";
+
+                for (String policyName : policyManager.getAllPolicyNames()) {
+                    try {
+                        ScanPolicy testPolicy = policyManager.getPolicy(policyName);
+                        alertThreshold = testPolicy.getDefaultThreshold().name();
+                        attackStrength = testPolicy.getDefaultStrength().name();
+                       
+                        Map<String, String> map = new HashMap<>();
+                        map.put("name", policyName);
+                        map.put(
+                                "attackStrength",
+                                attackStrength == null ? "" : String.valueOf(attackStrength));
+                        map.put(
+                                "alertThreshold",
+                                alertThreshold == null ? "" : String.valueOf(alertThreshold));
+                        
+                        resultList.addItem(new ApiResponseSet<String>("policy", map));
+                    } catch (ConfigurationException e) {
+                        log.error(e.getMessage(), e);
+                    }
                 }
+
                 result = resultList;
                 break;
             case VIEW_ATTACK_MODE_QUEUE:
