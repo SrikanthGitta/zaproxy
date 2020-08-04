@@ -35,6 +35,12 @@ jacoco {
     toolVersion = "0.8.5"
 }
 
+tasks.named<JacocoReport>("jacocoTestReport") {
+    reports {
+        xml.isEnabled = true
+    }
+}
+
 dependencies {
     api("com.fifesoft:rsyntaxtextarea:3.0.4")
     api("com.github.zafarkhaja:java-semver:0.9.0")
@@ -71,7 +77,7 @@ dependencies {
         setTransitive(false)
     }
     implementation("org.javadelight:delight-nashorn-sandbox:0.1.26")
-    implementation("com.formdev:flatlaf:0.30")
+    implementation("com.formdev:flatlaf:0.36")
 
     providedCompile("javax.servlet:javax.servlet-api:3.1.0")
 
