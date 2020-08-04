@@ -117,6 +117,9 @@ public class SpiderAPI extends ApiImplementor {
     /** The Constant PARAM_URL that defines the parameter defining the url of the scan. */
     private static final String PARAM_URL = "url";
 
+    /** The Constant VIEW_URI_COUNT that defines the number of URIs found. */
+    private static final String VIEW_URI_COUNT = "numberOfURIs";
+
     private static final String PARAM_USER_ID = "userId";
     private static final String PARAM_CONTEXT_ID = "contextId";
     private static final String PARAM_CONTEXT_NAME = "contextName";
@@ -198,6 +201,7 @@ public class SpiderAPI extends ApiImplementor {
         this.addApiView(new ApiView(VIEW_EXCLUDED_FROM_SCAN));
         this.addApiView(new ApiView(VIEW_ALL_URLS));
         this.addApiView(new ApiView(VIEW_ADDED_NODES, null, new String[] {PARAM_SCAN_ID}));
+        this.addApiView(new ApiView(VIEW_URI_COUNT, new String[] {PARAM_SCAN_ID}));
 
         this.addApiView(new ApiView(VIEW_DOMAINS_ALWAYS_IN_SCOPE));
         ApiView view = new ApiView(VIEW_OPTION_DOMAINS_ALWAYS_IN_SCOPE);
@@ -663,6 +667,13 @@ public class SpiderAPI extends ApiImplementor {
             }
             resultUrls.addItem(resultList);
             result = resultUrls;
+        } else if (VIEW_URI_COUNT.equals(name)) {
+            SpiderScan scan = (SpiderScan) this.getSpiderScan(params);
+            int urisFound = 0;
+            if (scan != null) {
+                urisFound = scan.getNumberOfURIsFound();
+            }
+            result = new ApiResponseElement(name, Integer.toString(urisFound));
         } else if (VIEW_EXCLUDED_FROM_SCAN.equals(name)) {
             result = new ApiResponseList(name);
             Session session = Model.getSingleton().getSession();
